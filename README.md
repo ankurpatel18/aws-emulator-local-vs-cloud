@@ -2,7 +2,7 @@
 
 Run contract tests for DynamoDB, S3, SQS, and SNS against AWS Emulator on your Mac. The lab uses temporary resources and synthetic order data.
 
-Open [the local HTML companion](aws-emulator-local-only.html) in your browser for copyable commands and evidence recording. Read the article in [Markdown](aws-emulator-local-testing.md) or [PDF](aws-emulator-local-testing.pdf).
+Open [the local HTML companion](aws-emulator-local-only.html) in your browser for copyable commands and evidence recording. 
 
 The steps below follow the HTML lab. Emulator endpoint: `https://127.0.0.1:9297`.
 
