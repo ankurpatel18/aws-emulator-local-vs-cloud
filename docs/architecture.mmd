@@ -1,0 +1,29 @@
+flowchart LR
+    DEV["Developer or CI job"] --> TESTS["Python contract test suite"]
+    TESTS --> SWITCH{"Execution target"}
+
+    subgraph LOCAL["Local feedback loop"]
+        EMU["AWS Emulator\nhttps://127.0.0.1:9297"]
+        LOCALDDB[("Emulated DynamoDB\nin-memory state")]
+        EMU --> LOCALDDB
+    end
+
+    subgraph CLOUD["Isolated AWS test account"]
+        IAM["IAM test role\nreal authorization"]
+        DDB[("Amazon DynamoDB\nPAY_PER_REQUEST")]
+        TRAIL["Cloud audit / service telemetry"]
+        IAM --> DDB
+        DDB -.-> TRAIL
+    end
+
+    SWITCH -->|"Fast contract tests"| EMU
+    SWITCH -->|"Cloud integration tests"| IAM
+
+    EMU --> LOCALRESULT["Local evidence\nAPI shape, validation, state transitions"]
+    DDB --> CLOUDRESULT["Cloud evidence\nservice behavior + IAM + regional semantics"]
+
+    LOCALRESULT --> COMPARE["Compare assertions and gaps"]
+    CLOUDRESULT --> COMPARE
+
+    LIMIT["Do not infer IAM, resource-policy,\ncross-account, or cross-Region correctness\nfrom emulator success"]
+    LIMIT -.-> LOCALRESULT

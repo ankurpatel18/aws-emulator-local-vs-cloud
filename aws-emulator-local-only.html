@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="A step-by-step local AWS Emulator lab for DynamoDB, S3, SQS and SNS on macOS.">
+<title>Local AWS Emulator Lab</title>
+<style>
+:root{color-scheme:light;--page:#f4f6f2;--white:#fff;--ink:#172c23;--muted:#53655a;--line:#d9e4db;--green:#145a43;--green-dark:#15372b;--mint:#def0e3;--amber:#795115;--amber-bg:#fff3dc;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:15px/1.55 system-ui,-apple-system,sans-serif}button,select,input,textarea{font:inherit;color:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.5}a{color:var(--green)}a:hover{text-decoration-thickness:2px}:focus-visible{outline:3px solid #28845e;outline-offset:3px}
+h1,h2,h3,p{margin:0}h1,h2,h3{line-height:1.14;letter-spacing:-.033em}h1{font-size:clamp(38px,6vw,67px)}h2{font-size:clamp(22px,3.3vw,29px)}h3{font-size:18px}code,pre,.eyebrow,.step-number,.endpoint{font-family:var(--mono)}code{font-size:.89em;overflow-wrap:anywhere}pre{margin:0;font-size:13px;line-height:1.6;overflow:auto;tab-size:2}[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding:28px clamp(14px,4vw,40px) 55px}.hero{background:var(--green-dark);border-radius:20px;padding:34px clamp(19px,4vw,40px);color:#effaf2;display:flex;align-items:center;justify-content:space-between;gap:28px}.eyebrow{text-transform:uppercase;letter-spacing:.11em;font-size:11px;font-weight:760;color:var(--green);margin-bottom:7px}.hero .eyebrow{color:#b2d9bf}.hero p{color:#d3e9d9;margin-top:10px;max-width:58ch}.hero-side{display:grid;gap:12px;min-width:0}.endpoint{font-size:12px;color:#dff3e4;border:1px solid #547b64;padding:8px 11px;border-radius:8px;overflow-wrap:anywhere}.hero-side a{justify-self:start}
+.layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;margin-top:24px;align-items:start}.rail{position:sticky;top:20px;background:var(--white);border:1px solid var(--line);border-radius:13px;padding:14px}.rail .eyebrow{padding:0 6px}.rail a{display:flex;gap:7px;align-items:center;padding:7px 6px;border-radius:6px;color:#284a38;text-decoration:none;font-size:13px;font-weight:660}.rail a:hover{background:#edf5ee}.rail span{font:700 11px var(--mono);color:var(--green);width:19px;flex:none}.flow{display:grid;gap:14px;min-width:0}.step{scroll-margin-top:14px;border:1px solid var(--line);border-radius:14px;background:var(--white);padding:20px;min-width:0}.step-head{display:flex;align-items:start;gap:11px}.step-number{width:30px;height:30px;display:grid;place-items:center;background:var(--mint);color:#15543d;border-radius:7px;font-size:13px;font-weight:750;flex:none}.step-head>.lead{min-width:0}.step-body{margin-top:13px;display:grid;gap:12px}.lead p,.meta,.hint{color:var(--muted);font-size:13px}.lead p{margin-top:6px}.meta{font-size:14px}.hint{font-size:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid #d3e0d6;border-radius:8px;background:#fff;padding:7px 11px;color:var(--green);font-weight:720;font-size:13px;text-decoration:none;white-space:nowrap}.btn:hover{background:#edf5ee}.btn.primary{color:white;background:var(--green);border-color:var(--green)}.btn.primary:hover{background:#0e4735}.btn.lite{color:var(--green-dark);background:#d9f2df;border-color:#d9f2df}.btn.lite:hover{background:#e7faeb}.btn.small{font-size:12px;padding:5px 9px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.codebar{min-width:0;border:1px solid #2c4e3c;border-radius:9px;overflow:hidden;background:#1a3329;color:#e9f6ec}.codebar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 11px;background:#254739;color:#e6f4e8;font-weight:700;font-size:12px}.codebar pre{padding:12px 13px;min-width:0}.notice{border:1px solid #e7d4af;background:var(--amber-bg);color:#684411;border-radius:8px;padding:10px 12px;font-size:13px}.test-bar{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap}.test-bar label{flex:1 1 280px}.test-hint{min-height:20px}.panel-actions{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}.panel-actions h3{margin:0}
+label{display:grid;gap:4px;font-size:13px;font-weight:680}select,input,textarea{background:#fff;border:1px solid #bfcfc2;border-radius:7px;padding:8px 9px;min-width:0}textarea{resize:vertical;min-height:84px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.form{display:grid;gap:11px}.form-error{color:#8a341f;font-size:13px}.matrix-wrap{border:1px solid var(--line);border-radius:9px;overflow-x:auto}.matrix{width:100%;text-align:left;border-collapse:collapse;font-size:13px}.matrix th,.matrix td{padding:10px 11px;border-bottom:1px solid #e6ede7}.matrix thead{background:#edf5ee;color:#284c3b}.matrix tr:last-child td,.matrix tbody tr:last-child th{border:0}.matrix tbody th{font-weight:650}.status{display:inline-block;font-size:11px;line-height:1.25;font-weight:730;border-radius:5px;padding:4px 7px;white-space:nowrap;background:#edf1ed;color:#465b4e}.status.pass{background:var(--mint);color:#175b40}.status.fail{background:#fbe8e3;color:#853427}.status.blocked{background:var(--amber-bg);color:#76500f}
+#history{list-style:none;margin:0;padding:0}.entry{padding:9px 0;border-top:1px solid var(--line)}.entry summary{cursor:pointer;font-size:13px;font-weight:680}.entry p{overflow-wrap:anywhere}.entry pre{padding:9px 10px;border-radius:7px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f2f6f2;margin:7px 0}.trouble{border-top:1px solid var(--line);padding-top:10px}.trouble summary{cursor:pointer;color:var(--green);font-weight:720;font-size:14px}.trouble p{margin:8px 0 0}.toast{position:fixed;z-index:2;bottom:17px;right:17px;max-width:calc(100% - 34px);background:var(--green-dark);color:white;border-radius:8px;padding:8px 12px;font-size:13px}.toast:empty{display:none}
+@media(max-width:770px){.layout{grid-template-columns:1fr;gap:13px}.rail{position:static;display:flex;overflow:auto;gap:4px;padding:7px}.rail .eyebrow{display:none}.rail a{white-space:nowrap;padding:6px 8px}.rail span{width:auto}.hero{align-items:start;flex-direction:column;gap:17px}.hero-side{display:flex;align-items:center;flex-wrap:wrap}}
+@media(max-width:490px){.wrap{padding-top:13px}.hero{padding:23px 16px}.step{padding:14px}.grid2{grid-template-columns:1fr}.matrix th,.matrix td{padding-inline:7px}.matrix .btn{font-size:11px;padding-inline:7px}.endpoint{font-size:11px}.matrix th:first-child{max-width:130px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div>
+    <p class="eyebrow">DynamoDB · S3 · SQS · SNS</p>
+    <h1>Local AWS Emulator</h1>
+    <p>Start the emulator on your Mac, run a service check in Terminal, and save what you observed.</p>
+  </div>
+  <div class="hero-side">
+    <span class="endpoint">https://127.0.0.1:9297</span>
+    <a class="btn lite" href="#tests">Go to tests ↓</a>
+  </div>
+</header>
+<div class="layout">
+<nav class="rail" aria-label="Execution steps">
+  <p class="eyebrow">Execution steps</p>
+  <a href="#prepare"><span>01</span>Prepare the lab</a>
+  <a href="#start"><span>02</span>Start the emulator</a>
+  <a href="#connect"><span>03</span>Verify setup</a>
+  <a href="#tests"><span>04</span>Run tests</a>
+  <a href="#evidence"><span>05</span>Record evidence</a>
+  <a href="#stop"><span>06</span>Stop the emulator</a>
+</nav>
+<main class="flow">
+<section id="prepare" class="step" aria-labelledby="prepare-title">
+  <div class="step-head"><span class="step-number" aria-hidden="true">01</span><div class="lead"><h2 id="prepare-title">Prepare the lab</h2><p>Start Docker Desktop. Install Python 3 and AWS CLI if they are missing.</p></div></div>
+  <div class="step-body">
+    <p class="meta">Get the source from the <a href="https://github.com/ankurpatel18/aws-emulator-local-vs-cloud" target="_blank" rel="noopener noreferrer">GitHub repository</a> using <strong>Code → Download ZIP</strong>, or use the source folder included with this HTML in the complete lab ZIP. Open two Terminal windows in the project folder containing <code>Dockerfile.aws-emulator</code> and <code>scripts/test-emulator.sh</code>.</p>
+    <div class="codebar"><div class="codebar-head">Check prerequisites <button type="button" class="btn small" data-copy="prerequisites">Copy</button></div><pre id="prerequisites">docker version
+python3 --version
+aws --version</pre></div>
+  </div>
+</section>
+<section id="start" class="step" aria-labelledby="start-title">
+  <div class="step-head"><span class="step-number" aria-hidden="true">02</span><div class="lead"><h2 id="start-title">Build and start the emulator</h2><p>Terminal 1 · Run from the lab folder. Leave this window running during the tests.</p></div></div>
+  <div class="step-body">
+    <p class="meta">The build selects the emulator package for Apple silicon or Intel. If your emulator is already running on port 9297, continue to Step 3.</p>
+    <div class="codebar"><div class="codebar-head">Terminal 1 <button type="button" class="btn small" data-copy="start-code">Copy commands</button></div><pre id="start-code">(
+  set -eu
+  case "$(uname -m)" in
+    arm64|aarch64)
+      docker build --platform linux/arm64 --build-arg EMULATOR_RPM_ARCH=aarch64 \
+        -f Dockerfile.aws-emulator -t aws-emulator .
+      ;;
+    x86_64)
+      docker build --platform linux/amd64 -f Dockerfile.aws-emulator -t aws-emulator .
+      ;;
+    *)
+      printf '%s\n' 'Unsupported CPU architecture.' &gt;&amp;2
+      exit 1
+      ;;
+  esac
+  mkdir -p "$HOME/.aws/emulator"
+  docker run --rm -p 127.0.0.1:9297:9297 \
+    -e HOME="$HOME" \
+    -v "$HOME/.aws/emulator:$HOME/.aws/emulator" \
+    aws-emulator -p 9297
+)</pre></div>
+    <p class="hint">The port mapping binds to loopback on your Mac.</p>
+  </div>
+</section>
+<section id="connect" class="step" aria-labelledby="connect-title">
+  <div class="step-head"><span class="step-number" aria-hidden="true">03</span><div class="lead"><h2 id="connect-title">Prepare Python and verify the connection</h2><p>Terminal 2 · Run from the lab folder.</p></div></div>
+  <div class="step-body">
+    <p class="meta">Set up the virtual environment once. If <code>.venv</code> already exists with the dependencies installed, run only <code>source .venv/bin/activate</code>.</p>
+    <div class="codebar"><div class="codebar-head">Activate the lab environment <button type="button" class="btn small" data-copy="venv">Copy commands</button></div><pre id="venv">python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt</pre></div>
+    <div class="codebar"><div class="codebar-head">Verify the emulator identity <button type="button" class="btn small" data-copy="verify-code">Copy commands</button></div><pre id="verify-code"></pre></div>
+    <p class="hint">Expected preflight output is <code>Emulator account: 000000000000</code>. This checks your target before testing. Keep using the complete blocks in Step 4, which repeat the preflight.</p>
+  </div>
+</section>
+<section id="tests" class="step" aria-labelledby="tests-title">
+  <div class="step-head"><span class="step-number" aria-hidden="true">04</span><div class="lead"><h2 id="tests-title">Run a service check</h2><p>Terminal 2 · Keep the virtual environment active and paste the whole block.</p></div></div>
+  <div class="step-body">
+    <div class="codebar"><div class="codebar-head">Run the four-service pytest suite <button type="button" class="btn small" data-copy="all-services-code">Copy</button></div><pre id="all-services-code">bash scripts/test-emulator.sh -v</pre></div>
+    <div class="test-bar">
+      <label for="test-picker">Test to run
+        <select id="test-picker">
+          <optgroup label="Amazon DynamoDB · pytest">
+            <option value="full">Full DynamoDB suite</option>
+            <option value="roundtrip">Write and read an order</option>
+            <option value="duplicate">Reject a duplicate order</option>
+            <option value="invalid">Return a validation error</option>
+            <option value="missing">Read a missing order · optional extension</option>
+          </optgroup>
+          <optgroup label="Service checks · Boto3">
+            <option value="s3">Amazon S3 · object round-trip</option>
+            <option value="sqs">Amazon SQS · message round-trip</option>
+            <option value="sns">Amazon SNS · topic publish</option>
+          </optgroup>
+        </select>
+      </label>
+      <a class="btn" id="record-selected" href="#evidence" hidden>Record this check</a>
+    </div>
+    <p class="meta test-hint" id="test-hint" aria-live="polite"></p>
+    <div class="codebar"><div class="codebar-head">Guarded test command <button type="button" class="btn small" data-copy="test-code">Copy commands</button></div><pre id="test-code"></pre></div>
+    <p class="hint">The bundled pytest suite contains six checks across DynamoDB, S3, SQS, and SNS. Use the selector to run and record an individual exercise. The missing-order DynamoDB check is an optional extension.</p>
+    <details class="trouble">
+      <summary>Troubleshoot a failed setup</summary>
+      <p class="meta"><strong><code>NoCredentialsError</code></strong> · Paste the complete Step 4 block. The endpoint and generated credentials loaded by <code>source</code> are scoped to that block. Running a bare pytest command afterward can lose both.</p>
+      <p class="meta"><strong>Connection refused or missing files</strong> · Check Terminal 1 for a startup error, and confirm the container and script both use port 9297.</p>
+      <p class="meta"><strong>Certificate error</strong> · Restart the emulator if needed and rerun Step 3 so the command uses the generated CA for the current instance.</p>
+      <p class="meta"><strong>HTTP 501 / <code>NotImplemented</code></strong> · Record the operation and output as blocked. Local coverage varies by feature and release. Check the <a href="https://docs.aws.amazon.com/emulator/latest/userguide/check-project.html" target="_blank" rel="noopener noreferrer">AWS Emulator fidelity guide</a> for your version.</p>
+    </details>
+  </div>
+</section>
+<section id="evidence" class="step" aria-labelledby="evidence-title">
+  <div class="step-head"><span class="step-number" aria-hidden="true">05</span><div class="lead"><h2 id="evidence-title">Record the observed result</h2><p>Save one entry per check. Results stay in this browser, and new checks start unrecorded.</p></div></div>
+  <div class="step-body">
+    <div class="matrix-wrap"><table class="matrix" aria-label="Latest local results">
+      <thead><tr><th scope="col">Check</th><th scope="col">Latest local outcome</th><th scope="col"><span aria-label="Actions">Action</span></th></tr></thead>
+      <tbody id="matrix"></tbody>
+    </table></div>
+    <p class="hint">A passing fixture-backed test also confirms that table setup completed. A setup error can be recorded under the fixture and marked as blocked for the assertion.</p>
+    <form class="form" id="record-form">
+      <div class="grid2">
+        <label>Check<select name="check" required></select></label>
+        <label>Result<select name="outcome" required><option value="">Choose the observed result</option><option value="pass">Met expectation</option><option value="fail">Did not meet expectation</option><option value="blocked">Blocked / inconclusive</option></select></label>
+        <label>Run time (your local time)<input type="datetime-local" name="ranAt" required></label>
+        <label>Run reference or emulator version<input name="reference" type="text" placeholder="Local run on port 9297" maxlength="150" required></label>
+      </div>
+      <label>Observed output<textarea name="observed" required maxlength="4000" placeholder="Paste the sanitized Terminal output and what this check verified."></textarea></label>
+      <p class="hint">Keep credentials and customer data out of the log.</p>
+      <p id="form-error" class="form-error" role="alert" hidden></p>
+      <div class="row"><button type="submit" class="btn primary">Save observation</button><button type="button" class="btn" id="cancel-edit" hidden>Cancel edit</button></div>
+    </form>
+    <div class="panel-actions"><h3>Evidence log <span id="count" class="hint"></span></h3><button class="btn" type="button" id="export" disabled>Export JSON</button></div>
+    <p class="hint" id="empty">No local observations yet.</p>
+    <ul id="history"></ul>
+  </div>
+</section>
+<section id="stop" class="step" aria-labelledby="stop-title">
+  <div class="step-head"><span class="step-number" aria-hidden="true">06</span><div class="lead"><h2 id="stop-title">Stop the emulator</h2><p>Terminal 1 · Press <strong>Ctrl+C</strong> after saving your evidence.</p></div></div>
+  <div class="step-body">
+    <p class="meta">The DynamoDB fixture and service scripts attempt to remove their temporary resources. Stopping the emulator clears its in-memory state, including resources left by an interrupted check. Keep the HTML and your JSON export for later review.</p>
+    <div class="notice"><strong>Scope of the lab.</strong> Use these results for local API and application behavior. IAM authorization, service quotas and production behavior require separate validation.</div>
+    <div class="row"><a href="https://docs.aws.amazon.com/emulator/latest/userguide/getting-started-docker.html" target="_blank" rel="noopener noreferrer">AWS Emulator Docker setup</a> · <a href="https://docs.aws.amazon.com/emulator/latest/userguide/point-sdk-to-emulator.html" target="_blank" rel="noopener noreferrer">SDK setup</a> · <a href="https://docs.aws.amazon.com/emulator/latest/userguide/security.html" target="_blank" rel="noopener noreferrer">Security scope</a></div>
+  </div>
+</section>
+</main>
+</div>
+</div>
+<div id="toast" class="toast" role="status"></div>
+<noscript><p class="notice">Enable JavaScript to choose a test command and record local evidence.</p></noscript>
+<script type="text/x-python" id="service-setup">
+from contextlib import closing
+import os
+from urllib.parse import urlsplit
+from uuid import uuid4
+
+import boto3
+from botocore.config import Config
+
+endpoint = os.environ["AWS_ENDPOINT_URL"]
+if endpoint != "https://127.0.0.1:9297":
+    raise SystemExit("Unexpected endpoint. Stopping.")
+region = os.environ["AWS_REGION"]
+name = "emulator-lab-" + uuid4().hex[:12]
+
+def require_local_request(request, **kwargs):
+    target = urlsplit(request.url)
+    if (target.scheme, target.hostname, target.port) != ("https", "127.0.0.1", 9297):
+        raise RuntimeError("SDK attempted to use an endpoint outside the emulator.")
+
+def local_client(service):
+    options = {"s3": {"addressing_style": "path"}} if service == "s3" else {}
+    client = boto3.client(
+        service,
+        endpoint_url=endpoint,
+        region_name=region,
+        verify=os.environ["AWS_CA_BUNDLE"],
+        config=Config(
+            inject_host_prefix=False,
+            connect_timeout=5,
+            read_timeout=15,
+            retries={"total_max_attempts": 1},
+            proxies={},
+            **options,
+        ),
+    )
+    client.meta.events.register("before-send.*.*", require_local_request)
+    return client
+</script>
+<script type="text/x-python" id="service-s3">
+s3 = local_client("s3")
+bucket_args = {"Bucket": name}
+if region != "us-east-1":
+    bucket_args["CreateBucketConfiguration"] = {"LocationConstraint": region}
+s3.create_bucket(**bucket_args)
+key = "sample-order.txt"
+payload = b"order-123: RECEIVED"
+try:
+    s3.put_object(Bucket=name, Key=key, Body=payload)
+    try:
+        with closing(s3.get_object(Bucket=name, Key=key)["Body"]) as body:
+            if body.read() != payload:
+                raise RuntimeError("S3 returned different object bytes.")
+    finally:
+        s3.delete_object(Bucket=name, Key=key)
+finally:
+    s3.delete_bucket(Bucket=name)
+print("PASS S3: object bytes match and the temporary bucket was deleted.")
+</script>
+<script type="text/x-python" id="service-sqs">
+sqs = local_client("sqs")
+queue_url = sqs.create_queue(QueueName=name)["QueueUrl"]
+payload = "order-123: RECEIVED"
+try:
+    sent = sqs.send_message(QueueUrl=queue_url, MessageBody=payload)
+    for attempt in range(3):
+        reply = sqs.receive_message(
+            QueueUrl=queue_url, MaxNumberOfMessages=1, WaitTimeSeconds=3
+        )
+        messages = reply.get("Messages", [])
+        if messages:
+            break
+    else:
+        raise RuntimeError("SQS returned no message after three receive calls.")
+    message = messages[0]
+    if message["Body"] != payload or message["MessageId"] != sent["MessageId"]:
+        raise RuntimeError("SQS returned a different message.")
+    sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=message["ReceiptHandle"])
+finally:
+    sqs.delete_queue(QueueUrl=queue_url)
+print("PASS SQS: message ID and body match and the temporary queue was deleted.")
+</script>
+<script type="text/x-python" id="service-sns">
+sns = local_client("sns")
+topic_arn = sns.create_topic(Name=name)["TopicArn"]
+try:
+    published = sns.publish(TopicArn=topic_arn, Message="order-123: RECEIVED")
+    if not published.get("MessageId"):
+        raise RuntimeError("SNS returned no publish message ID.")
+finally:
+    sns.delete_topic(TopicArn=topic_arn)
+print("PASS SNS: Publish returned a message ID and the temporary topic was deleted.")
+</script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const checks = {
+  fixture: {title:"Create the orders table (fixture)"},
+  roundtrip: {title:"Write and read an order", test:"test_create_then_read_order", hint:"Checks that the order read back matches the order written, including its ID, customer ID and status."},
+  duplicate: {title:"Reject a duplicate order", test:"test_duplicate_order_is_rejected", hint:"Checks that the duplicate write raises DuplicateOrderError. The strengthened version also reads the original order back."},
+  invalid: {title:"Return a validation error", test:"test_invalid_table_name_returns_validation_exception", hint:"Checks that CreateTable with the name ab returns ValidationException."},
+  missing: {title:"Read a missing order (optional)", test:"test_get_missing_order_returns_none", hint:"Use this only if your checkout includes the added missing-order test. It checks that the repository returns None for an absent order."},
+  s3: {title:"Amazon S3 · object round-trip", script:"service-s3", hint:"Creates a temporary bucket, writes a sample object, compares the downloaded bytes, then removes the object and bucket."},
+  sqs: {title:"Amazon SQS · message round-trip", script:"service-sqs", hint:"Creates a temporary standard queue, sends and receives one message, checks its ID and body, then deletes the message and queue."},
+  sns: {title:"Amazon SNS · topic publish", script:"service-sns", hint:"Creates a temporary topic, checks that Publish returns a message ID, then deletes the topic. This check covers publish acceptance only."}
+};
+const statusLabels = {pass:"Met", fail:"Mismatch", blocked:"Blocked"};
+const verification = [
+  "(",
+  "  set -eu",
+  "  unset AWS_SESSION_TOKEN AWS_SECURITY_TOKEN AWS_DEFAULT_PROFILE \u005c",
+  "    AWS_ENDPOINT_URL_STS AWS_ENDPOINT_URL_DYNAMODB AWS_IGNORE_CONFIGURED_ENDPOINT_URLS",
+  "  source scripts/use-emulator.sh 9297",
+  '  if [ "$AWS_ENDPOINT_URL" != "https://127.0.0.1:9297" ]; then',
+  "    printf '%s\u005cn' 'Unexpected endpoint. Stopping.' >&2",
+  "    exit 1",
+  "  fi",
+  '  account="$(aws sts get-caller-identity --endpoint-url "$AWS_ENDPOINT_URL" --query Account --output text)"',
+  '  if [ "$account" != "000000000000" ]; then',
+  "    printf '%s\u005cn' 'Unexpected STS account. Stopping.' >&2",
+  "    exit 1",
+  "  fi",
+  '  printf "Emulator account: %s\u005cn" "$account"'
+];
+$("verify-code").textContent = [...verification, ")"].join("\n");
+const form = $("record-form");
+const testPicker = $("test-picker");
+const storeKey = "local-aws-emulator-lab-evidence-v1";
+let records = [];
+let editingId = null;
+let toastTimer;
+
+function element(name, value, className) {
+  const node = document.createElement(name);
+  if (value) node.textContent = value;
+  if (className) node.className = className;
+  return node;
+}
+
+function button(label, handler) {
+  const control = element("button", label, "btn small");
+  control.type = "button";
+  control.addEventListener("click", handler);
+  return control;
+}
+
+function notify(message) {
+  clearTimeout(toastTimer);
+  $("toast").textContent = message;
+  toastTimer = setTimeout(() => { $("toast").textContent = ""; }, 4400);
+}
+
+function updateTest() {
+  const selection = testPicker.value;
+  const check = checks[selection];
+  let command = "  python -m pytest -v tests/test_order_contract.py";
+  if (check?.test) command += "::" + check.test;
+  if (check?.script) {
+    command = [
+      "  python - <<'PY'",
+      $("service-setup").textContent.trim(),
+      $(check.script).textContent.trim(),
+      "PY"
+    ].join("\n\n");
+  }
+  $("test-code").textContent = [...verification, command, ")"].join("\n");
+  $("test-hint").textContent = check?.hint || "Runs the DynamoDB contract tests in your checkout and prints each result.";
+  $("record-selected").hidden = !check;
+}
+
+function isObservation(entry) {
+  return entry && typeof entry.id === "string" && Object.hasOwn(checks, entry.check)
+    && Object.hasOwn(statusLabels, entry.outcome) && Number.isFinite(Date.parse(entry.ranAt))
+    && Number.isFinite(Date.parse(entry.savedAt)) && typeof entry.reference === "string"
+    && typeof entry.observed === "string";
+}
+
+function loadRecords() {
+  const data = JSON.parse(localStorage.getItem(storeKey) ?? "[]");
+  if (!Array.isArray(data) || !data.every(isObservation)) throw new Error("Invalid evidence data");
+  return data;
+}
+
+function renderEvidence() {
+  const sorted = [...records].sort((a,b) => Date.parse(b.ranAt) - Date.parse(a.ranAt) || Date.parse(b.savedAt) - Date.parse(a.savedAt));
+  $("matrix").replaceChildren();
+  for (const [id, check] of Object.entries(checks)) {
+    const row = element("tr");
+    const name = element("th", check.title);
+    name.scope = "row";
+    const match = sorted.find(entry => entry.check === id);
+    const result = element("td");
+    result.append(element("span", match ? statusLabels[match.outcome] : "Unrecorded", match ? "status " + match.outcome : "status"));
+    const actions = element("td");
+    const action = button("Record", () => chooseCheck(id));
+    action.setAttribute("aria-label", "Record " + check.title);
+    actions.append(action);
+    row.append(name, result, actions);
+    $("matrix").append(row);
+  }
+  $("count").textContent = "(" + sorted.length + ")";
+  $("export").disabled = sorted.length === 0;
+  $("empty").hidden = sorted.length > 0;
+  $("history").replaceChildren();
+  for (const entry of sorted) {
+    const item = element("li", "", "entry");
+    const details = element("details");
+    const when = new Date(entry.ranAt).toLocaleString();
+    details.append(element("summary", checks[entry.check].title + " · " + statusLabels[entry.outcome] + " · " + when));
+    details.append(element("p", entry.reference, "hint"), element("pre", entry.observed),
+      button("Edit observation", () => editRecord(entry)));
+    item.append(details);
+    $("history").append(item);
+  }
+}
+
+function clearForm() {
+  form.reset();
+  editingId = null;
+  $("cancel-edit").hidden = true;
+  $("form-error").hidden = true;
+}
+
+function chooseCheck(id) {
+  clearForm();
+  form.elements.check.value = id;
+  form.elements.outcome.focus();
+}
+
+function editRecord(entry) {
+  editingId = entry.id;
+  form.elements.check.value = entry.check;
+  form.elements.outcome.value = entry.outcome;
+  const date = new Date(entry.ranAt);
+  form.elements.ranAt.value = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+  form.elements.reference.value = entry.reference;
+  form.elements.observed.value = entry.observed;
+  $("form-error").hidden = true;
+  $("cancel-edit").hidden = false;
+  form.elements.observed.focus();
+}
+
+function showFormError(message) {
+  $("form-error").textContent = message;
+  $("form-error").hidden = false;
+}
+
+form.addEventListener("submit", event => {
+  event.preventDefault();
+  const data = new FormData(form);
+  const ranAt = new Date(data.get("ranAt"));
+  const reference = data.get("reference").trim();
+  const observed = data.get("observed").trim();
+  if (!Number.isFinite(ranAt.getTime()) || ranAt.getTime() > Date.now() || !reference || !observed) {
+    showFormError("Enter a past run time, a run reference and the observed result.");
+    return;
+  }
+  try {
+    const current = loadRecords();
+    const previous = current.find(entry => entry.id === editingId);
+    if (editingId && !previous) throw new Error("Observation no longer exists.");
+    const entry = {
+      id: previous?.id ?? Array.from(crypto.getRandomValues(new Uint32Array(4)), value => value.toString(16)).join("-"),
+      check: data.get("check"), outcome: data.get("outcome"), ranAt: ranAt.toISOString(),
+      savedAt: new Date().toISOString(), reference, observed
+    };
+    if (!isObservation(entry)) throw new Error("Invalid observation");
+    const next = previous ? current.map(record => record.id === previous.id ? entry : record) : [...current, entry];
+    localStorage.setItem(storeKey, JSON.stringify(next));
+    records = next;
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    clearForm();
+    renderEvidence();
+    notify(previous ? "Observation updated." : "Local observation saved.");
+  } catch {
+    showFormError("Your browser could not save this entry. Copy the text before closing the page.");
+  }
+});
+
+$("cancel-edit").addEventListener("click", clearForm);
+testPicker.addEventListener("change", updateTest);
+$("record-selected").addEventListener("click", () => chooseCheck(testPicker.value));
+for (const [id, check] of Object.entries(checks)) {
+  const option = element("option", check.title);
+  option.value = id;
+  form.elements.check.append(option);
+}
+for (const control of document.querySelectorAll("[data-copy]")) {
+  control.addEventListener("click", async () => {
+    const code = $(control.dataset.copy);
+    try {
+      await navigator.clipboard.writeText(code.textContent);
+      notify("Commands copied.");
+    } catch {
+      const range = document.createRange();
+      range.selectNodeContents(code);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      notify("Commands selected. Press Command+C to copy.");
+    }
+  });
+}
+$("export").addEventListener("click", () => {
+  const output = {
+    lab:"Local AWS Emulator service lab", schemaVersion:1, exportedAt:new Date().toISOString(),
+    observations:records.map(entry => ({...entry, title:checks[entry.check].title}))
+  };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(output,null,2) + "\n"],{type:"application/json"}));
+  const link = element("a");
+  link.download = "local-aws-emulator-evidence.json";
+  link.href = url;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url),5000);
+});
+try { records = loadRecords(); } catch { notify("This browser could not load saved evidence."); }
+updateTest();
+renderEvidence();
+</script>
+</body>
+</html>

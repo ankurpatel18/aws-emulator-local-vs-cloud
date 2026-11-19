@@ -1,0 +1,52 @@
+digraph G {
+  graph [rankdir=TB, bgcolor="white", pad="0.28", nodesep="0.42", ranksep="0.50", splines=ortho, fontname="DejaVu Sans", fontsize=20, labelloc="t", label="AWS Emulator contract testing: local evidence vs real AWS evidence", fontcolor="#232F3E"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=12, margin="0.16,0.10", color="#879196", fillcolor="white", fontcolor="#232F3E", penwidth=1.6];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#545B64", fontcolor="#545B64", penwidth=1.5, arrowsize=0.8];
+
+  dev [label="Developer or CI job", fillcolor="#F2F3F3", color="#545B64"];
+  tests [label="Python contract test suite\nBoto3 + pytest", fillcolor="#EAF4FD", color="#2774AE"];
+  choose [label="Execution target", shape=diamond, fillcolor="#FFF4E5", color="#FF9900"];
+  compare [label="Compare assertions\nand documented gaps", fillcolor="#F2F3F3", color="#545B64"];
+  warn [label="Do NOT infer IAM, resource-policy, cross-account,\nor cross-Region correctness from emulator success", shape=note, fillcolor="#FFF1F0", color="#C9252D", fontcolor="#7A1A1E"];
+
+  subgraph cluster_local {
+    label="LOCAL FEEDBACK LOOP";
+    fontname="DejaVu Sans";
+    fontsize=13;
+    fontcolor="#0073BB";
+    color="#7FB3D5";
+    style="rounded,dashed";
+    penwidth=1.5;
+    margin=18;
+    emulator [label="AWS Emulator\nHTTPS 127.0.0.1:9297", fillcolor="#E8F6F3", color="#1B8A7A"];
+    lddb [label="Emulated DynamoDB\nIn-memory state", shape=cylinder, fillcolor="#EEF4FF", color="#4053D6"];
+    localproof [label="Local evidence\nAPI shape | validation | state transitions", fillcolor="#F4FBF8", color="#1B8A7A"];
+    emulator -> lddb -> localproof;
+  }
+
+  subgraph cluster_cloud {
+    label="ISOLATED AWS TEST ACCOUNT";
+    fontname="DejaVu Sans";
+    fontsize=13;
+    fontcolor="#D86613";
+    color="#E5A35C";
+    style="rounded,dashed";
+    penwidth=1.5;
+    margin=18;
+    iam [label="IAM test role\nReal authorization", fillcolor="#FDEDEC", color="#C9252D"];
+    ddb [label="Amazon DynamoDB\nPAY_PER_REQUEST", shape=cylinder, fillcolor="#EEF4FF", color="#4053D6"];
+    cloudproof [label="Cloud evidence\nManaged service + IAM + Regional semantics", fillcolor="#FFF8F1", color="#D86613"];
+    telemetry [label="Cloud audit /\nservice telemetry", fillcolor="#F7F2FF", color="#8C4FFF"];
+    iam -> ddb -> cloudproof;
+    ddb -> telemetry [style=dashed];
+  }
+
+  dev -> tests -> choose;
+  {rank=same; emulator; iam;}
+  choose -> emulator [xlabel="Fast contract tests"];
+  choose -> iam [xlabel="Cloud integration tests"];
+  {rank=same; localproof; cloudproof;}
+  localproof -> compare;
+  cloudproof -> compare;
+  warn -> localproof [style=dashed, arrowhead=none, color="#C9252D"];
+}
